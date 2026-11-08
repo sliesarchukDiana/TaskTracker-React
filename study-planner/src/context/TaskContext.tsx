@@ -19,8 +19,8 @@ interface TaskContextType {
     updateTask: (task: Task) => void;
     toggleTask: (id: number) => void;
     requestDelete: (id: number) => void;
-    confirmDelete: (id: number) => void;
-    undoDelete: (id: number) => void;
+    confirmDelete: () => void;
+    undoDelete: () => void;
     clearCompleted: () => void;
     resetTasks: () => void;
     toast: ToastType | null;
@@ -79,19 +79,19 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         showToast('Завдання буде видалено...', 'error');
     }, [showToast]);
 
-    const confirmDelete = useCallback((id: number) => {
-        dispatch({ type: 'confirmDelete', payload: id });
-        showToast('Завдання остаточно видалено', 'info');
+    const confirmDelete = useCallback(() => {
+        dispatch({ type: 'confirmDelete' });
+        showToast('Завдання видалено', 'info');
     }, [showToast]);
 
-    const undoDelete = useCallback((id: number) => {
-        dispatch({ type: 'undoDelete', payload: id });
+    const undoDelete = useCallback(() => {
+        dispatch({ type: 'undoDelete' });
         showToast('Видалення скасовано', 'info');
     }, [showToast]);
 
     const clearCompleted = useCallback(() => {
         dispatch({ type: 'clearCompleted' });
-        showToast('Виконані завдання очищено', 'info');
+        showToast('Видалення...', 'error');
     }, [showToast]);
 
     const resetTasks = useCallback(() => {
