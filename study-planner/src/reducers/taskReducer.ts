@@ -29,7 +29,7 @@ export function taskReducer (state: Task[] = [], action: TaskAction): Task[] {
             return state.map(task =>
             task.id === action.payload ? {...task, isDeleting: false } : task);
         case 'clearCompleted':
-            return state.filter(task => !task.completed || !task.isDeleting);
+            return state.filter(task => !task.completed);
         case 'reset':
             return action.payload;
         default:
