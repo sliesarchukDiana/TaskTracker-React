@@ -15,7 +15,7 @@ export default function Toast() {
             }, 50);
 
             const timer = setTimeout(() => {
-                confirmDelete(); // <-- Прибрано 0
+                confirmDelete();
                 clearToast();
             }, 5000);
 
