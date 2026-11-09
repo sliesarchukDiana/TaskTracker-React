@@ -1,15 +1,14 @@
+import { useTaskContext } from '../hooks/useTaskContext';
+
 export type FilterType = 'all' | 'completed' | 'uncompleted';
 
-interface TaskFiltersProps {
-    currentFilter: FilterType;
-    onFilterChange: (filter: FilterType) => void;
-}
+export default function TaskFilters() {
+    const { filter: currentFilter, setFilter: onFilterChange } = useTaskContext();
 
-export default function TaskFilters({ currentFilter, onFilterChange }: TaskFiltersProps) {
     const filters: { value: FilterType; label: string }[] = [
-        { value: 'all', label: 'Всі' },
+        { value: 'all', label: 'Усі' },
         { value: 'completed', label: 'Виконані' },
-        { value: 'uncompleted', label: 'Не виконані' },
+        { value: 'uncompleted', label: 'Невиконані' },
     ];
 
     return (

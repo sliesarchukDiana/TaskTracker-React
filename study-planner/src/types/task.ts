@@ -7,4 +7,5 @@ export interface Task {
     completed: boolean;
     priority: TaskPriority;
     category: string;
+    isDeleting?: boolean;
 }

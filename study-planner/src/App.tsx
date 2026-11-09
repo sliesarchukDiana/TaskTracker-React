@@ -1,35 +1,13 @@
-import { useState } from 'react';
-import type {Task} from './types/task';
-import { initialTasks } from './data/initialTasks';
 import Header from './components/Header';
 import TaskStats from './components/TaskStats';
 import TaskList from './components/TaskList';
 import TaskForm from './components/TaskForm';
-import TaskFilters, {type FilterType } from './components/TaskFilters';
+import TaskFilters from './components/TaskFilters';
+import Toast from './components/Toast';
+import { useTaskContext } from './hooks/useTaskContext';
 
 export default function App() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [filter, setFilter] = useState<FilterType>('all');
-
-  const toggleTaskStatus = (id: number) => {
-    setTasks(prevTasks =>
-        prevTasks.map(task =>
-            task.id === id ? { ...task, completed: !task.completed } : task
-        )
-    );
-  };
-
-  const deleteTask = (id: number) => {
-    setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
-  };
-
-  const addTask = (newTaskData: Omit<Task, 'id'>) => {
-    const newTask: Task = {
-      ...newTaskData,
-      id: Date.now(),
-    };
-    setTasks(prevTasks => [...prevTasks, newTask]);
-  };
+  const { tasks, filter, clearCompleted, resetTasks } = useTaskContext();
 
   const filteredTasks = tasks.filter(task => {
     if (filter === 'completed') return task.completed;
@@ -38,30 +16,42 @@ export default function App() {
   });
 
   return (
-      <div className="max-w-3xl mx-auto py-8 px-4">
+      <div className="max-w-3xl mx-auto py-8 px-4 relative">
         <Header />
-        <TaskStats tasks={tasks} />
-
+        <TaskStats />
         <main>
-          <TaskForm onAdd={addTask} />
-          <TaskFilters currentFilter={filter} onFilterChange={setFilter} />
+          <TaskForm />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <TaskFilters />
+            <div className="flex gap-2">
+              <button
+                  onClick={clearCompleted}
+                  className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+              >
+                Очистити виконані
+              </button>
+              <button
+                  onClick={resetTasks}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Скинути дані
+              </button>
+            </div>
+          </div>
 
           {tasks.length === 0 ? (
               <div className="text-center p-8 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg text-gray-500 mt-4">
-                Завдань поки немає.<br />Додайте перше навчальне завдання.
+                Немає завдань.
               </div>
           ) : filteredTasks.length === 0 ? (
               <div className="text-center p-8 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg text-gray-500 mt-4">
-                За цим фільтром завдань немає.
+                Завдань за цим фільтром не знайдено.
               </div>
           ) : (
-              <TaskList
-                  tasks={filteredTasks}
-                  onToggle={toggleTaskStatus}
-                  onDelete={deleteTask}
-              />
+              <TaskList tasks={filteredTasks} />
           )}
         </main>
+        <Toast />
       </div>
   );
 }
