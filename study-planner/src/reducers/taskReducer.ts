@@ -1,7 +1,7 @@
 import type {Task} from '../types/task';
 
 export type TaskAction =
-    | {type: 'add'; payload: Omit<Task, 'id' | 'isDeleting'>}
+    | {type: 'add'; payload: Task}
     | {type: 'toggle'; payload: number}
     | {type: 'update'; payload: Task}
     | {type: 'requestDelete'; payload: number}
@@ -13,7 +13,7 @@ export type TaskAction =
 export function taskReducer (state: Task[] = [], action: TaskAction): Task[] {
     switch (action.type) {
         case 'add':
-            return [...state, {...action.payload, id: Date.now(), isDeleting: false}];
+            return [...state, action.payload];
         case 'toggle':
             return state.map(task =>
                 task.id === action.payload ? {...task, completed: !task.completed} : task);
