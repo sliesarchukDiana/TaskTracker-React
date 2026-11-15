@@ -18,12 +18,12 @@ type TodosResponse = {
 const CATEGORIES = ['Study', 'Work', 'Personal', 'Health', 'Household', 'Hobby'];
 const PRIORITIES: TaskPriority[] = ['low', 'medium', 'high'];
 const DESCRIPTIONS = [
-    'Потребує додаткового дослідження матеріалів.',
-    'Рутинне завдання, варто зробити якомога швидше.',
-    'Критично важливий етап для поточного проєкту.',
-    'Не забути обговорити деталі на наступній зустрічі.',
-    'Можна делегувати або відкласти за потреби.',
-    'Вимагає підвищеної концентрації та часу.'
+    'Time is up.',
+    'Has to be done as soon as possible.',
+    'Low effort task, can be done in 5 minutes.',
+    'Can be delegated to somebody else.',
+    'Needs a lot of time and effort.',
+    'Deadline is soon.'
 ];
 
 function toTask(todo: ApiTodo): Task {
