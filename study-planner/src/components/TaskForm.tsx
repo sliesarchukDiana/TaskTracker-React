@@ -4,28 +4,34 @@ import { useTaskContext } from '../hooks/useTaskContext';
 
 export default function TaskForm() {
     const { addTask } = useTaskContext();
-
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('');
     const [priority, setPriority] = useState<TaskPriority>('medium');
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!title.trim()) return;
+        if (!title.trim() || isSubmitting) return;
 
-        addTask({
-            title: title.trim(),
-            description: description.trim(),
-            category: category.trim() || 'General',
-            priority,
-            completed: false,
-        });
+        setIsSubmitting(true);
 
-        setTitle('');
-        setDescription('');
-        setCategory('');
-        setPriority('medium');
+        try {
+            await addTask({
+                title: title.trim(),
+                description: description.trim(),
+                category: category.trim() || 'General',
+                priority,
+                completed: false,
+            });
+            setTitle('');
+            setDescription('');
+            setCategory('');
+            setPriority('medium');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -65,11 +71,8 @@ export default function TaskForm() {
                 </select>
             </div>
             <button
-                type="submit"
-                disabled={!title.trim()}
-                className="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-                Додати
+                 type="submit" disabled={!title.trim() || isSubmitting} className="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex justify-center items-center gap-2">
+                 {isSubmitting ? 'Збереження...' : 'Додати завдання'}
             </button>
         </form>
     );

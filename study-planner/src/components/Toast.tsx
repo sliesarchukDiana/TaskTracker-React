@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTaskContext } from '../hooks/useTaskContext';
+import type { Task } from '../types/task';
 
 export default function Toast() {
     const { toast, clearToast, tasks, confirmDelete, undoDelete } = useTaskContext();
@@ -7,6 +8,10 @@ export default function Toast() {
 
     const deletingTasks = tasks.filter(t => t.isDeleting);
     const isDeleting = deletingTasks.length > 0;
+    const deletingTasksRef = useRef<Task[]>(deletingTasks);
+    useEffect(() => {
+        deletingTasksRef.current = deletingTasks;
+    }, [deletingTasks]);
 
     useEffect(() => {
         if (isDeleting) {
@@ -15,7 +20,7 @@ export default function Toast() {
             }, 50);
 
             const timer = setTimeout(() => {
-                confirmDelete();
+                confirmDelete(deletingTasksRef.current);
                 clearToast();
             }, 5000);
 
