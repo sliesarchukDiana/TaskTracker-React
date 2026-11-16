@@ -141,7 +141,6 @@ export default function TaskItem({ task }: TaskItemProps) {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                    {/* Кнопка Info, яка змінює стан showDetails на true */}
                     <button
                         onClick={() => setShowDetails(true)}
                         disabled={task.isDeleting}
@@ -169,7 +168,6 @@ export default function TaskItem({ task }: TaskItemProps) {
                 </div>
             </div>
 
-            {/* Умовний рендеринг модального вікна, коли showDetails === true */}
             {showDetails && (
                 <TaskDetailsModal
                     taskId={task.id}
