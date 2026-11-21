@@ -1,10 +1,8 @@
 import { createContext, useReducer, useEffect, useState, type ReactNode, useCallback } from 'react';
+import type * as React from 'react';
 import { taskReducer } from '../reducers/taskReducer';
-import { useLocalStorage } from '../hooks/useLocalStorage';
 import type { Task } from '../types/task';
-import type { FilterType } from '../components/TaskFilters';
 import { taskRepository } from '../repositories/taskRepository';
-import * as React from "react";
 
 export interface ToastType {
     id: number;
@@ -14,9 +12,7 @@ export interface ToastType {
 
 interface TaskContextType {
     tasks: Task[];
-    filter: FilterType;
-    setFilter: (filter: FilterType) => void;
-    addTask: (task: Omit<Task, 'id' | 'isDeleting'>) => Promise<void>;
+    addTask: (task: Omit<Task, 'id' | 'isDeleting'>) => Promise<Task>;
     updateTask: (task: Task) => Promise<void>;
     toggleTask: (id: number) => Promise<void>;
     requestDelete: (id: number) => void;
@@ -25,8 +21,8 @@ interface TaskContextType {
     clearCompleted: () => void;
     resetTasks: () => void;
     toast: ToastType | null;
+    showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
     clearToast: () => void;
-    
     isLoading: boolean;
     error: string | null;
     page: number;
@@ -39,16 +35,14 @@ export const TaskContext = createContext<TaskContextType | undefined>(undefined)
 
 export function TaskProvider({ children }: { children: ReactNode }) {
     const [tasks, dispatch] = useReducer(taskReducer, []);
-    const [filter, setFilter] = useLocalStorage<FilterType>('activeFilter', 'all');
     const [toast, setToast] = useState<ToastType | null>(null);
-
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(0);
     const limit = 10;
 
     useEffect(() => {
-        const activeCount = tasks.filter(t => !t.completed).length;
+        const activeCount = tasks.filter((t) => !t.completed).length;
         document.title = `Study Planner — ${activeCount} active tasks`;
     }, [tasks]);
 
@@ -74,24 +68,24 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const controller = new AbortController();
+
         const loadTasks = async () => {
-            try {
-                await fetchTasks(page * 10, controller.signal);
-            } catch {
-                showToast('Сталась помилка!', 'error');
-            }
+            await fetchTasks(page * limit, controller.signal);
         };
-        loadTasks();
+
+        void loadTasks();
         return () => controller.abort();
-    }, [page, fetchTasks, showToast]);
+    }, [page, fetchTasks]);
 
     const addTask = useCallback(async (task: Omit<Task, 'id' | 'isDeleting'>) => {
         try {
             const newTask = await taskRepository.create(task);
             dispatch({ type: 'add', payload: newTask });
             showToast('Завдання створено', 'success');
-        } catch {
+            return newTask;
+        } catch (err) {
             showToast('Помилка створення завдання', 'error');
+            throw err;
         }
     }, [showToast]);
 
@@ -100,13 +94,14 @@ export function TaskProvider({ children }: { children: ReactNode }) {
             await taskRepository.update(task.id, task);
             dispatch({ type: 'update', payload: task });
             showToast('Завдання оновлено', 'success');
-        } catch {
-            showToast('Помилка оновлення', 'error');
+        } catch (err) {
+            showToast('Помилка оновлення завдання', 'error');
+            throw err;
         }
     }, [showToast]);
 
     const toggleTask = useCallback(async (id: number) => {
-        const taskToToggle = tasks.find(t => t.id === id);
+        const taskToToggle = tasks.find((t) => t.id === id);
         if (!taskToToggle) return;
 
         dispatch({ type: 'toggle', payload: id });
@@ -126,10 +121,9 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
     const confirmDelete = useCallback(async (tasksToDelete: Task[]) => {
         try {
-            await Promise.all(tasksToDelete.map(task => taskRepository.delete(task.id)));
+            await Promise.all(tasksToDelete.map((task) => taskRepository.delete(task.id)));
             dispatch({ type: 'confirmDelete' });
-        } catch (error) {
-            console.error('Помилка видалення на сервері:', error);
+        } catch {
             dispatch({ type: 'undoDelete' });
             showToast('Помилка сервера. Не вдалося видалити.', 'error');
         }
@@ -147,33 +141,32 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
     const resetTasks = useCallback(() => {
         setPage(0);
-        fetchTasks(0);
+        void fetchTasks(0);
         showToast('Список оновлено', 'info');
     }, [fetchTasks, showToast]);
 
-    const value = {
-        tasks,
-        filter,
-        setFilter,
-        addTask,
-        updateTask,
-        toggleTask,
-        requestDelete,
-        confirmDelete,
-        undoDelete,
-        clearCompleted,
-        resetTasks,
-        toast,
-        clearToast,
-        isLoading,
-        error,
-        page,
-        setPage,
-        fetchTasks,
-    };
-
     return (
-        <TaskContext.Provider value={value}>
+        <TaskContext.Provider
+            value={{
+                tasks,
+                addTask,
+                updateTask,
+                toggleTask,
+                requestDelete,
+                confirmDelete,
+                undoDelete,
+                clearCompleted,
+                resetTasks,
+                toast,
+                showToast,
+                clearToast,
+                isLoading,
+                error,
+                page,
+                setPage,
+                fetchTasks,
+            }}
+        >
             {children}
         </TaskContext.Provider>
     );

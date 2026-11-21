@@ -7,5 +7,9 @@ export interface Task {
     completed: boolean;
     priority: TaskPriority;
     category: string;
+    /** Client-owned metadata: DummyJSON /todos API does not provide these fields */
+    createdBy: string;
+    /** Client-owned metadata: DummyJSON /todos API does not provide these fields */
+    createdAt: string;
     isDeleting?: boolean;
 }

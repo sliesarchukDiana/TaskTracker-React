@@ -1,13 +1,30 @@
+import {authStorage} from './authStorage.ts';
+
 const API_URL = import.meta.env.VITE_API_URL || 'https://dummyjson.com';
 
-export const httpClient = {
-    async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-        const response = await fetch(`${API_URL}${endpoint}`, options);
+interface RequestOptions extends RequestInit {
+    requiresAuth?: boolean;
+}
 
-        if (!response.ok) {
-            throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+export const httpClient = {
+    async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+        const {requiresAuth = false, headers: customHeaders, ...rest} = options;
+        const headers = new Headers(customHeaders);
+
+        const token = authStorage.getToken();
+        if (requiresAuth && token) {
+            headers.set('Authorization', `Bearer ${token}`);
         }
 
-        return response.json();
+        const response = await fetch(`${API_URL}${endpoint}`, {
+            ...rest,
+            headers,
+        });
+
+        if (!response.ok) {
+            throw new Error (`HTTP Error: ${response.status} ${response.statusText}`);
+        }
+
+        return await response.json() as Promise<T>;
     }
-};
+}
